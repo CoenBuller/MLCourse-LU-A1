@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import sklearn
 from sklearn import datasets, ensemble, metrics, svm, model_selection, linear_model
-
+import random
 
 def training_test_split(X, y, test_size=0.3, random_state=None):
     """ Split the features X and labels y into training and test features and labels.
@@ -14,7 +14,19 @@ def training_test_split(X, y, test_size=0.3, random_state=None):
     If `random_state` is None, then no random seed will be set.
 
     """
-    raise NotImplementedError('Your code here')
+    rows = range(0, len(y))
+    
+    random.seed(random_state)
+    training_rows = random.sample(rows, int((1-test_size)*len(y)))
+    testing_rows = np.delete(rows, training_rows)
+    
+    X_train = X[training_rows,:]
+    y_train = y[training_rows]
+    
+    X_test = X[testing_rows,:]
+    y_test = y[testing_rows]
+    
+    
     return X_train, X_test, y_train, y_test
 
 
@@ -33,11 +45,17 @@ def false_positives(true_labels, predicted_labels, positive_class):
 
 
 def true_negatives(true_labels, predicted_labels, positive_class):
-    raise NotImplementedError('Your code here')
+    neg_predicted = predicted_labels != positive_class 
+    neg_true = true_labels != positive_class 
+    match = neg_predicted & neg_true 
+    return np.sum(match)
 
 
 def false_negatives(true_labels, predicted_labels, positive_class):
-    raise NotImplementedError('Your code here')
+    neg_predicted  = predicted_labels != positive_class
+    pos_true = true_labels == positive_class 
+    match = neg_predicted & pos_true
+    return np.sum(match)
 
 
 def precision(true_labels, predicted_labels, positive_class):
@@ -47,23 +65,35 @@ def precision(true_labels, predicted_labels, positive_class):
 
 
 def recall(true_labels, predicted_labels, positive_class):
-    raise NotImplementedError('Your code here')
+    TP = true_positives(true_labels, predicted_labels, positive_class)
+    FN = false_negatives(true_labels, predicted_labels, positive_class)
+    return TP/(TP+FN)
 
 
 def accuracy(true_labels, predicted_labels, positive_class):
-    raise NotImplementedError('Your code here')
+    TP = true_positives(true_labels, predicted_labels, positive_class)
+    TN = true_negatives(true_labels, predicted_labels, positive_class)
+    FP = false_positives(true_labels, predicted_labels, positive_class)
+    FN = false_negatives(true_labels, predicted_labels, positive_class)
+    return (TP + TN)/ (TP + TN + FP + FN)
 
 
 def specificity(true_labels, predicted_labels, positive_class):
-    raise NotImplementedError('Your code here')
+    TN = true_negatives(true_labels, predicted_labels, positive_class)
+    FP = false_positives(true_labels, predicted_labels, positive_class)
+    return TN / (TN + FP)
 
 
 def balanced_accuracy(true_labels, predicted_labels, positive_class):
-    raise NotImplementedError('Your code here')
+    rec = recall(true_labels, predicted_labels, positive_class)
+    specif = specificity(true_labels, predicted_labels, positive_class)
+    return (rec + specif)/2
 
 
 def F1(true_labels, predicted_labels, positive_class):
-    raise NotImplementedError('Your code here')
+    prec = precision(true_labels, predicted_labels, positive_class)
+    rec = recall(true_labels, predicted_labels, positive_class)
+    return 2*prec*rec/(prec + rec)
 
 
 def load_data(fraction=0.75, seed=None, target_digit=9, appply_stratification=True):
